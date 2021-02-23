@@ -1,24 +1,24 @@
 # This file gets copied to LiveKit ZIP build, in order to provide
 # some basic information for the user - mostly hints to encourage
-# the user to run /mylinux/boot/bootinst.sh(bat).
 #
 # Lines containing # are ignored
 #
 Thank you for using mylinux!
-If you are reading this from a CD, it is already bootable.
+If you are reading this from a USB(GRUB method only support USB drive),
+it is already bootable.
 Steps to make it bootable from your USB device are following:
 
-1) Copy the entire /mylinux/ directory to your USB drive.
-   If you are using Windows, you will get for example E:\mylinux\
-   You probably already did this - just make sure you are on your
-   USB drive now and not on your local harddisk.
+1) USB drive partition type must be FAT32 and USB dirve is GPT mode.
 
-2) Now navigate to directory /mylinux/boot/ on your USB drive.
-   In Windows, it will be E:\mylinux\boot\ for example.
-   Use explorer or any other file manager for this task.
+2) All folders(EFI, boot, mylinux) must be store in partition 1 of USB drive
 
-3) While you're in the boot directory, locate file bootinst.bat
-   Run it by doubleclicking it. It will setup your USB to boot.
+3) When you using the tool to create linux live(GRUB method) for USB drive,
+it will install EFI boot files to "EFI folder"
+
+4) grub.cfg file be install to /boot/grub/
+
+5) When you using the tool to creat linux live(GRUB method) for USB drive,
+it will create one zip file(include EFI, boot, mylinux) to mylinux-data-xxx/xxxx folder
 
 -- That's it. Your USB device is now ready to boot mylinux.
 -- You can safely delete this file (readme.txt), it's not needed.

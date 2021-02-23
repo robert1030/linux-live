@@ -40,23 +40,66 @@ fi
 
 # create live kit filesystem (cpio archive)
 rm -Rf "$LIVEKITDATA"
+rm -Rf "$LIVEKITNAME"
 #install GRUB & EFI to LIVEKITDAT folder
-BOOT="$LIVEKITDATA"/"$LIVEKITNAME"/boot
-grubbootdir="$LIVEKITDATA"/boot
-grub-install --target=x86_64-efi --recheck --boot-directory="$grubbootdir" --efi-directory="$LIVEKITDATA"
+BOOT="$LIVEKITGRUB"/boot
+grubbootdir="$EFITARGET"/boot
+grub-install --target=x86_64-efi --recheck --boot-directory="$grubbootdir" --efi-directory="$EFITARGET"
 mkdir -p "$BOOT"
 mkdir -p "$BOOT"/../changes
 mkdir -p "$BOOT"/../modules
+mkdir -p "$LIVEKITDATA"
 
-cp -R /boot/efi/EFI/"$SECOND_EFIBOOT" "$LIVEKITDATA"/EFI/
+# Grub second boot item, ex: memtest86...etc.
+cp -R /boot/efi/EFI/"$SECOND_EFIBOOT" "$EFITARGET"/EFI/
 
 if [ "$INITRAMFS" != "" ]; then
    mv "$INITRAMFS" $BOOT/initrfs.img
 fi
+
+# BIOS / MBR booting
+cp -r bootfiles/* $BOOT
+cat bootfiles/bootinst.bat | sed -r "s:/boot/:/$LIVEKITNAME/boot/:" | sed -r "s:\\\\boot\\\\:\\\\$LIVEKITNAME\\\\boot\\\\:" > $BOOT/bootinst.bat
+cp $VMLINUZ $BOOT/ || exit
+
 # UEFI booting
 cp bootfiles/grub.cfg "$grubbootdir"/grub/
-#cp bootfiles/EFI/Boot/syslinux.efi $BOOT/EFI/Boot/bootx64.efi
-#cp bootfiles/EFI/Boot/{ldlinux.e64,menu.c32,libutil.c32,vesamenu.c32,libcom32.c32} $BOOT/EFI/Boot
-#cat $BOOT/syslinux.cfg | sed -r "s:/$LIVEKITNAME/boot/vesamenu:vesamenu:" > $BOOT/EFI/Boot/syslinux.cfg
+sed -i "s/xxxx/"$LIVEKITNAME"/g" "$grubbootdir"/grub/grub.cfg
 
+# create compressed 01-core.sb
+COREFS=""
+for i in $MKMOD; do
+   if [ -d /$i ]; then
+      COREFS="$COREFS /$i"
+   fi
+done
+mksquashfs $COREFS $LIVEKITGRUB/01-core.$BEXT -comp xz -b 1024K -always-use-fragments -keep-as-directory || exit
 
+cd "$LIVEKITGRUB"
+ARCH=$(uname -m)
+TARGET=/tmp
+USBTARGET=/mnt/usb
+
+cat "$CWD/bootinfo.txt" | fgrep -v "#" | sed -r "s/mylinux/$LIVEKITNAME/" | sed -r "s/\$/\x0D/" > readme.txt
+
+# echo $MKISOFS -o "$LIVEKITDATA/$LIVEKITNAME-$ARCH.iso" -v -J -R -D -A "$USBMOUNT" -V "$USBMOUNT" \
+# -m SQAUbuntu20.04Diag-data-* \
+# -no-emul-boot -boot-info-table -boot-load-size 4 \
+# -b "$LIVEKITNAME"/boot/isolinux.bin -c "$LIVEKITNAME"/boot/isolinux.boot . \
+# > $TARGET/gen_"$LIVEKITNAME"_iso.sh
+# chmod o+x $TARGET/gen_"$LIVEKITNAME"_iso.sh
+
+echo cd "$USBTARGET" > $TARGET/gen_"$LIVEKITNAME"_zip.sh && \
+echo zip -9 -r --exclude=SQAUbuntu20.04Diag-data-* "$LIVEKITDATA/$LIVEKITNAME-$ARCH.zip" '*' \
+>> $TARGET/gen_"$LIVEKITNAME"_zip.sh
+chmod o+x $TARGET/gen_"$LIVEKITNAME"_zip.sh
+
+# echo zip -0 -r "$USBTARGET/$LIVEKITNAME-$ARCH.zip" '*' \
+# > $TARGET/gen_"$LIVEKITNAME"_zip.sh
+# chmod o+x $TARGET/gen_"$LIVEKITNAME"_zip.sh
+
+echo "-----------------------------"
+echo "Finished. Find your result in $EFITARGET"
+# echo "To build ISO, run: $TARGET/gen_"$LIVEKITNAME"_iso.sh"
+echo "To build ZIP, run: $TARGET/gen_"$LIVEKITNAME"_zip.sh"
+cd $CWD

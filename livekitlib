@@ -173,11 +173,12 @@ modprobe_everything()
 
 refresh_devs()
 {
+   sleep 2
    debug_log "refresh_devs" "$*"
    if [ -r /proc/sys/kernel/hotplug ]; then
       echo /sbin/mdev > /proc/sys/kernel/hotplug
    fi
-   mdev -s
+   partprobe -s
 }
 
 
@@ -416,7 +417,6 @@ init_network_ip()
       udhcpc -i $ETH -n -s $SCRIPT -q >/dev/null
    fi
 }
-
 
 # Mount data from http using httpfs
 # $1 = from URL
