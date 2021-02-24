@@ -43,15 +43,15 @@ rm -Rf "$LIVEKITDATA"
 rm -Rf "$LIVEKITNAME"
 #install GRUB & EFI to LIVEKITDAT folder
 BOOT="$LIVEKITGRUB"/boot
-grubbootdir="$EFITARGET"/boot
-grub-install --target=x86_64-efi --recheck --boot-directory="$grubbootdir" --efi-directory="$EFITARGET"
+grubbootdir="$USBMOUNT"/boot
+grub-install --target=x86_64-efi --recheck --boot-directory="$grubbootdir" --efi-directory="$USBMOUNT"
 mkdir -p "$BOOT"
 mkdir -p "$BOOT"/../changes
 mkdir -p "$BOOT"/../modules
 mkdir -p "$LIVEKITDATA"
 
 # Grub second boot item, ex: memtest86...etc.
-cp -R /boot/efi/EFI/"$SECOND_EFIBOOT" "$EFITARGET"/EFI/
+cp -R /boot/efi/EFI/"$SECOND_EFIBOOT" "$USBMOUNT"/EFI/
 
 if [ "$INITRAMFS" != "" ]; then
    mv "$INITRAMFS" $BOOT/initrfs.img
@@ -99,7 +99,7 @@ chmod o+x $TARGET/gen_"$LIVEKITNAME"_zip.sh
 # chmod o+x $TARGET/gen_"$LIVEKITNAME"_zip.sh
 
 echo "-----------------------------"
-echo "Finished. Find your result in $EFITARGET"
+echo "Finished. Find your result in $USBMOUNT"
 # echo "To build ISO, run: $TARGET/gen_"$LIVEKITNAME"_iso.sh"
 echo "To build ZIP, run: $TARGET/gen_"$LIVEKITNAME"_zip.sh"
 cd $CWD

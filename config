@@ -17,8 +17,8 @@ LIVEKITNAME="SQAUbuntu20.04Diag"
 #merge memtes86 to EFI boot
 SECOND_EFIBOOT="memtest86pro9"
 
-# GRUB --efi-directory path
-EFITARGET=/mnt/usb
+# GRUB --efi-directory path (using USBMOUNT parameter)
+# EFITARGET=/mnt/usb
 
 # Kernel file, will be copied to your Live Kit
 # Your kernel must support aufs and squashfs. Debian Jessie's kernel is ready
